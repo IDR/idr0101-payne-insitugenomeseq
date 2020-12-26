@@ -13,13 +13,6 @@ FILESET="$(basename "$SOURCE")"
 DESTINATION=idrftp@hx-fasp-1.ebi.ac.uk:
 LOGSDIR="$HOME/ascp/logs"
 
-echo "Copying $SOURCE to $DESTINATION $FILESET. Continue (y/N)? "
-read response
-if [ "$response" != "y" ]; then
-    echo Cancelled
-    exit 1
-fi
-
 docker run -it --rm \
     -v "$SOURCE:/$FILESET:ro" \
     -v "$LOGSDIR:/logs" \
