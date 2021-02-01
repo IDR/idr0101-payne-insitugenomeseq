@@ -40,12 +40,20 @@ def main(conn):
         )
         print("pd_link", pd_link.id.val)
 
-        for image_name in ["pgp1f [pgp1f_cycle01.nd2", "pgp1f_hyb [pgp1f_hyb.nd2"]:
+        orig_names = [
+            "pgp1f [pgp1f_cycle01.nd2 (series %02d)]",
+            "pgp1f_hyb [pgp1f_hyb.nd2 (series %02d)]",
+        ]
+        new_names = ["pgp1_fov%02d_seq", "pgp1_fov%02d_hyb"]
+        for orig_name, new_name in zip(orig_names, new_names):
             # Find the images
-            name = "%s (series %02d)]" % (image_name, image_number)
-            print(name)
+            name = orig_name % image_number
+            rename = new_name % image_number
+            print(name, rename)
             if name in images_by_name:
                 img = images_by_name[name]
+                img.setName(rename)
+                img.save()
                 print("linking image...", img.id)
                 link = conn.getQueryService().findByQuery(
                     "select l from DatasetImageLink as l where l.parent.id=%i and l.child.id=%i"
