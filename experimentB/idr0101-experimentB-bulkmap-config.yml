@@ -1,0 +1,52 @@
+---
+name: idr0100-payne-insitugenomeseq/experimentB
+version: 1
+
+defaults:
+  include: no
+  type: string
+  includeclient: yes
+  visible: yes
+  omitempty: yes
+
+columns:
+
+  - name: Material Type
+    clientname: Material Type
+    include: yes
+
+  - name: Experimental Condition [Genetic Cross]
+    clientname: Genetic Cross
+    include: yes
+
+  - name: Characteristics [Developmental Stage]
+    clientname: Developmental Stage
+    include: yes
+
+  - name: Comment [Image File Comments]
+    clientname: Image File Comments
+    include: yes
+
+  - name: Channels
+    clientname: Channels
+    include: yes
+
+
+  ######################################################################
+  # mapr groups
+  ######################################################################
+
+  - group:
+      namespace: openmicroscopy.org/mapr/organism
+      columns:
+        - name: Characteristics [Organism]
+          clientname: Organism
+          include: yes
+
+
+advanced:
+  ignore_missing_primary_key: yes
+  primary_group_keys:
+    - namespace: openmicroscopy.org/mapr/organism
+      keys:
+        - Organism
