@@ -48,6 +48,6 @@ advanced:
     - namespace: openmicroscopy.org/mapr/organism
       keys:
         - Organism
-     - namespace: openmicroscopy.org/mapr/cell_line
+    - namespace: openmicroscopy.org/mapr/cell_line
       keys:
         - Cell Line
