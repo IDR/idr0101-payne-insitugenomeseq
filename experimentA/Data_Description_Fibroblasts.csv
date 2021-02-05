@@ -1,0 +1,26 @@
+﻿Column index,Column name,Column description
+1,cell_id,Unique cell index from 1-106
+2,amp_ind,Unique amplicon index per cell
+3,x_um,Spatial location of read in the x dimension in microns
+4,y_um,Spatial location of read in the y dimension in microns
+5,z_um,Spatial location of read in the z dimension in microns
+6,region_size,Size of the region used to quantify the in situ UMI in voxels
+7,hg38_chr,Chromosome index of hg38 read alignment
+8,hg38_pos,Genomic position of hg38 read alignment
+9,umi_rol,Consensus sequence of the UMI from the in situ images
+10,purity_score,Measure of the consensus UMI quality from in situ images
+11,umi_seq,Genomic sequence of the closest matching UMI
+12,umi_cs,Colorspace sequence of the closest matching UMI
+13,match_score,Measure of the closest matching UMI quality from in situ images
+14,frag_len,Length of the genomic insert in base pairs
+15,hg38_ind,Unique UMI index from ex situ sequencing
+16,hamming_dist,Number of bases that differ between consensus and closest matching UMI
+17,cluster,"Chromosome territory assignment based on k-medoids + visual inspection, 0 = not clustered, 1/2"
+18,mle_cluster,"Chromosome territory assignment based on maximum likelihood estimation, 0 = not clustered, 1/2 = clusters"
+19,norm_r_3D,Normalized spatial distance to nearest point in 3D convex hull
+20,norm_r_2D,Normalized spatial distance to nearest point in 2D convex hull
+21,ab_comp,"A/B compartment annotation, -1 = B, 1 = A"
+22,lads,"Lamina-associated domain annotation, -1 = not in LAD, 1 = in LAD"
+23,rep_name,Name annotation from Repbase
+24,rep_class,Class annotation from Repbase
+25,rep_family,Family annotation from Repbase

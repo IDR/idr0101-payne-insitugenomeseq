@@ -1,0 +1,39 @@
+﻿Column index,Column name,Column description
+1,embryo_id,Unique embryo index from 1-57
+2,cell_id,Unique cell index per embryo
+3,cell_index,"Unique cell index for all data, from 1-113"
+4,stage,Developmental stage
+5,amp_ind,Unique amplicon index per cell
+6,x_um_abs,Spatial location of read in the x dimension relative to whole embryo in microns
+7,y_um_abs,Spatial location of read in the y dimension relative to whole embryo in microns
+8,z_um_abs,Spatial location of read in the z dimension relative to whole embryo in microns
+9,chr,Chromosome of mm10 read alignment
+10,chr_name,Name of chromosome from chr column
+11,pos,Genomic position of mm10 read alignment
+12,rel_chr_pos,Genomic position from pos column divided by size of chromosome
+13,umi_rol,Consensus sequence of the UMI from the in situ images
+14,purity_score,Measure of the consensus UMI quality from in situ images
+15,umi_seq,Genomic sequence of the closest matching UMI
+16,umi_cs,Colorspace sequence of the closest matching UMI
+17,match_score,Measure of the closest matching UMI quality from in situ images
+18,frag_len,Length of the genomic insert in base pairs
+19,umi_ind,Unique UMI index from ex situ sequencing
+20,hamming_dist,Number of bases that differ between consensus and closest matching UMI
+21,gt,The bases at genomic positions where the read overlaps a haplotype-informative SNP
+22,hap1_reads,The number of SNPs in the read unique to the maternal genome
+23,hap2_reads,The number of SNPs in the read unique to the paternal genome
+24,hap_assignment,"Assignment to the maternal or paternal genome, -1 = not assigned, 0 = maternal, 1 = paternal,  2 = conflicting"
+25,cluster,"Chromosome territory assignment based on MLE or visual inspection, -1 = not clustered, 1/2 = clusters"
+26,cluster_hap,"Haplotyped chromosome territory assignment based on SNPs only, -1 = not haplotyped, 0 = maternal, 1 = paternal"
+27,cluster_hap_imputed,"Haplotyped chromosome territory assignment based on SNPs and homolog imputation -1 = not haplotyped, 0 = maternal, 1 = paternal"
+28,inlier,"Position of read relative to chromosome territories, 0 = read falls outside of territories, 1 = read falls within territory"
+29,dist_to_lamin,Spatial distance to nuclear lamina in microns
+30,dist_to_npb,Spatial distance to nearest nucleolus precursor body in microns
+31,npb_ind,Unique index of nucleolus precursor body per cell
+32,dist_to_cen,Spatial distance to nearest centromere in microns
+33,cen_ind,Unique index of nucleolus precursor body per cell
+34,compartment_ind,"A/B compartment annotation from Du et al., -1 = B, 0 = N/A, 1 = A"
+35,lads_both,"Lamina-associated domain annotation from Borsos et al., -0 not in shared LAD, 1 = in shared LAD"
+36,lads_mat,"Lamina-associated domain annotation from Borsos et al., -0 not in maternal LAD, 1 = in maternal LAD"
+37,lads_pat,"Lamina-associated domain annotation from Borsos et al., -0 not in paternal LAD, 1 = in paternal LAD"
+38,gc,GC % in nearest 1 Mb genomic bin
