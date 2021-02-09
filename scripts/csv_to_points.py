@@ -6,13 +6,14 @@ from collections import defaultdict
 import omero.clients
 import omero.cli
 import omero
-from omero.rtypes import rint, rdouble
+from omero.rtypes import rint, rdouble, rstring
 
 """
 This script parses data_table.csv files, 1 per embryo to create
 a Point for each row.
 """
 
+# colors picked to match figures in the paper
 colors = [
     (38, 47, 143),
     (249, 16, 30),
@@ -75,13 +76,6 @@ tables_path = "/Users/wmoore/Desktop/IDR/idr0101/annotations/"
 
 tables_path += "embryo/data_tables/embryo%02d_data_table.csv"
 
-columns = [
-    "x_um_abs",
-    "y_um_abs",
-    "z_um_abs",
-    "chr",
-]
-
 
 def main(conn):
 
@@ -97,33 +91,57 @@ def main(conn):
         pix_size_y = image.getPixelSizeY()
         pix_size_z = image.getPixelSizeZ()
 
+        # Read csv for each embryo
         table_pth = tables_path % embryo_id
         df = pandas.read_csv(table_pth, delimiter=",")
+        col_names = list(df.columns)
 
-        df.columns: 
+        # Create output table with extra columns
+        df2 = pandas.DataFrame(columns=(["Roi", "Shape"] + col_names))
 
-        # chr_id: [points]
-        points = defaultdict(list)
+        rows_by_chr = defaultdict(list)
         max_chr = 0
-        for (x_um, y_um, z_um, chr_id) in zip(*map(lambda x: df[x], columns)):
-            print("x_um, y_um, z_um, chr_id", x_um, y_um, z_um, chr_id)
-            max_chr = max(max_chr, chr_id)
-            # create a Point for each row
-            point = omero.model.PointI()
-            point.x = rdouble(x_um / pix_size_x)
-            point.y = rdouble(y_um / pix_size_y)
-            point.theZ = rint(int(round(z_um / pix_size_z)))
-            point.theT = rint(0)
-            if chr_id <= len(colors):
-                point.fillColor = rint(rgba_to_int(*colors[chr_id - 1]))
-                point.strokeColor = rint(rgba_to_int(*colors[chr_id - 1]))
-            points[chr_id].append(point)
 
-        # Create 1 ROI for each list of point
+        # first, group rows by chr_id
+        for index, row in df.iterrows():
+            chr_id = row["chr"]
+            max_chr = max(max_chr, chr_id)
+            rows_by_chr[chr_id].append(row)
+
+        # Create 1 ROI for each chr
         for chr_id in range(max_chr):
-            if chr_id in points:
-                print(chr_id, "creating ROI with %s points" % (len(points[chr_id])))
-                create_roi(updateService, image, points[chr_id])
+            if chr_id not in rows_by_chr:
+                continue
+            print(chr_id, "creating ROI with %s points" % (len(rows_by_chr[chr_id])))
+
+            points = []
+            # create a Point for each row
+            for row in rows_by_chr[chr_id]:
+                point = omero.model.PointI()
+                point.textValue = rstring(row["chr_name"])
+                point.x = rdouble(row["x_um_abs"] / pix_size_x)
+                point.y = rdouble(row["y_um_abs"] / pix_size_y)
+                point.theZ = rint(int(round(row["z_um_abs"] / pix_size_z)))
+                point.theT = rint(0)
+                if chr_id <= len(colors):
+                    point.fillColor = rint(rgba_to_int(*colors[chr_id - 1]))
+                    point.strokeColor = rint(rgba_to_int(*colors[chr_id - 1]))
+
+                points.append(point)
+
+            roi = create_roi(updateService, image, points)
+
+            # Need to get newly saved shape IDs
+            shapes = list(roi.copyShapes())
+            print("saved shapes", len(shapes))
+            for row, shape in zip(rows_by_chr[chr_id], shapes):
+                # checks that the order of shapes is same as order of rows
+                assert shape.theZ.val == round(row["z_um_abs"] / pix_size_z)
+                row["Roi"] = roi.id.val
+                row["Shape"] = shape.id.val
+                df2 = df2.append(row)
+
+        df2.to_csv("embryo_rois_%02d.csv" % embryo_id, index=False)
 
 
 if __name__ == "__main__":
