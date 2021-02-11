@@ -56,8 +56,10 @@ def get_image(project, embryo_id):
                     return image
 
 
-def create_roi(updateService, image, shapes):
+def create_roi(updateService, image, name, shapes):
     roi = omero.model.RoiI()
+    # NB: $ populate metadata Image:1 --file data.csv NEEDS roi names
+    roi.name = rstring(name)
     roi.setImage(image._obj)
     for shape in shapes:
         roi.addShape(shape)
@@ -66,6 +68,14 @@ def create_roi(updateService, image, shapes):
 
 def rgba_to_int(red, green, blue, alpha=255):
     return int.from_bytes([red, green, blue, alpha], byteorder="big", signed=True)
+
+def get_omero_col_type(dtype):
+    """Returns s for string, d for double, l for long/int"""
+    if dtype == 'int':
+        return 'l'
+    elif dtype == 'float':
+        return 'd'
+    return 's'
 
 
 tables_path = (
@@ -94,10 +104,12 @@ def main(conn):
         # Read csv for each embryo
         table_pth = tables_path % embryo_id
         df = pandas.read_csv(table_pth, delimiter=",")
+
+        col_types = [get_omero_col_type(t) for t in df.dtypes]
         col_names = list(df.columns)
 
         # Create output table with extra columns
-        df2 = pandas.DataFrame(columns=(["Roi", "Shape"] + col_names))
+        df2 = pandas.DataFrame(columns=(["roi", "shape"] + col_names))
 
         rows_by_chr = defaultdict(list)
         max_chr = 0
@@ -129,7 +141,7 @@ def main(conn):
 
                 points.append(point)
 
-            roi = create_roi(updateService, image, points)
+            roi = create_roi(updateService, image, row["chr_name"], points)
 
             # Need to get newly saved shape IDs
             shapes = list(roi.copyShapes())
@@ -137,11 +149,15 @@ def main(conn):
             for row, shape in zip(rows_by_chr[chr_id], shapes):
                 # checks that the order of shapes is same as order of rows
                 assert shape.theZ.val == round(row["z_um_abs"] / pix_size_z)
-                row["Roi"] = roi.id.val
-                row["Shape"] = shape.id.val
+                row["roi"] = roi.id.val
+                row["shape"] = shape.id.val
                 df2 = df2.append(row)
 
-        df2.to_csv("embryo_rois_%02d.csv" % embryo_id, index=False)
+        # Add # header roi, shape, other-col-types...
+        with open("embryo_rois_%02d.csv" % embryo_id, 'w') as csv_out:
+            csv_out.write('# header roi,l,' + ','.join(col_types) + '\n')
+
+        df2.to_csv("embryo_rois_%02d.csv" % embryo_id, mode='a', index=False)
 
 
 if __name__ == "__main__":
