@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
 import pandas
+import mimetypes
 from collections import defaultdict
 
 import omero.clients
 import omero.cli
 import omero
 from omero.rtypes import rint, rdouble, rstring
+from omero_metadata.populate import ParsingContext
+from omero.util.metadata_utils import NSBULKANNOTATIONSRAW
 
 """
 This script parses data_table.csv files, 1 per embryo to create
@@ -69,13 +72,14 @@ def create_roi(updateService, image, name, shapes):
 def rgba_to_int(red, green, blue, alpha=255):
     return int.from_bytes([red, green, blue, alpha], byteorder="big", signed=True)
 
+
 def get_omero_col_type(dtype):
     """Returns s for string, d for double, l for long/int"""
-    if dtype == 'int':
-        return 'l'
-    elif dtype == 'float':
-        return 'd'
-    return 's'
+    if dtype == "int":
+        return "l"
+    elif dtype == "float":
+        return "d"
+    return "s"
 
 
 tables_path = (
@@ -85,6 +89,19 @@ tables_path = (
 tables_path = "/Users/wmoore/Desktop/IDR/idr0101/annotations/"
 
 tables_path += "embryo/data_tables/embryo%02d_data_table.csv"
+
+
+def populate_metadata(image, file_name):
+    """Links the csv file to the image and parses it to create OMERO.table"""
+    mt = mimetypes.guess_type(file_name, strict=False)[0]
+    fileann = conn.createFileAnnfromLocalFile(
+        file_name, mimetype=mt, ns=NSBULKANNOTATIONSRAW
+    )
+    fileid = fileann.getFile().getId()
+    image.linkAnnotation(fileann)
+    client = image._conn.c
+    ctx = ParsingContext(client, image._obj, fileid=fileid, file=file_name)
+    ctx.parse()
 
 
 def main(conn):
@@ -153,11 +170,15 @@ def main(conn):
                 row["shape"] = shape.id.val
                 df2 = df2.append(row)
 
+        csv_name = "embryo_rois_%02d.csv" % embryo_id
         # Add # header roi, shape, other-col-types...
-        with open("embryo_rois_%02d.csv" % embryo_id, 'w') as csv_out:
-            csv_out.write('# header roi,l,' + ','.join(col_types) + '\n')
+        with open(csv_name, "w") as csv_out:
+            csv_out.write("# header roi,l," + ",".join(col_types) + "\n")
 
-        df2.to_csv("embryo_rois_%02d.csv" % embryo_id, mode='a', index=False)
+        df2.to_csv(csv_name, mode="a", index=False)
+
+        # Create OMERO.table from csv
+        populate_metadata(image, csv_name)
 
 
 if __name__ == "__main__":
