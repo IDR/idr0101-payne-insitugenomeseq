@@ -91,3 +91,35 @@ executed by passing typically four embryos at once:
 ```
 ./pipeline.sh embryo01 embryo02 embryo03 embryo04
 ```
+
+Raw data import
+---------------
+
+Experiment A only needs 2 raw data files: `pgp1f_hyb.nd2` and `pgp1f.pattern`, which are
+imported as many images in a single Dataset: `Fibroblasts_01`.
+Images are named `pgp1f [pgp1f_cycle01.nd2 (series 01)]` and `pgp1f_hyb [pgp1f_hyb.nd2 (series 01)]`.
+We create new Datasets `Fibroblasts_nn` and place the images from the corresponding series
+into each using:
+
+```
+python scripts/post_import_expA.py
+```
+
+Experiment B raw data is imported as normal.
+
+Processed data
+--------------
+
+Each image like `cell001/cy01_ch01.tif` is a Z-stack at a particular channel and cycle (timepoint).
+To create multi-dimensional images from these, we create symlinks from e.g. `cell01_t01_c01.tif`
+and a corresponding pattern file.
+Using script....
+
+
+
+Experiment A (pgp1)
+
+
+Experiment B (embryo)
+
+
