@@ -115,11 +115,10 @@ To create multi-dimensional images from these, we create symlinks from e.g. `cel
 and a corresponding pattern file.
 Using script....
 
+```
+cd idr0101-payne-insitugenomeseq/20210421-ftp/
+/data/idr-metadata/idr0101-payne-insitugenomeseq/scripts/processed_symlinks.sh
+```
 
-
-Experiment A (pgp1)
-
-
-Experiment B (embryo)
-
+This will create a `filePaths.tsv` file in `idr0101-payne-insitugenomeseq/20210421-ftp/`.
 
