@@ -110,15 +110,32 @@ Experiment B raw data is imported as normal.
 Processed data
 --------------
 
+Processed data is within `20210421-ftp`.
 Each image like `cell001/cy01_ch01.tif` is a Z-stack at a particular channel and cycle (timepoint).
 To create multi-dimensional images from these, we create symlinks from e.g. `cell01_t01_c01.tif`
 and a corresponding pattern file.
-Using script....
+These will all be created within a sibling directory `20210421-processed` using a script:
 
 ```
-cd idr0101-payne-insitugenomeseq/20210421-ftp/
-/data/idr-metadata/idr0101-payne-insitugenomeseq/scripts/processed_symlinks.sh
+cd /uod/idr/filesets/idr0101-payne-insitugenomeseq/
+/uod/idr/metadata/idr0101-payne-insitugenomeseq/scripts/processed_symlinks.sh
 ```
 
-This will create a `filePaths.tsv` file in `idr0101-payne-insitugenomeseq/20210421-ftp/`.
+The script also creates a `20210421-processed/processed-filePaths.tsv` file for bulk
+import of the pattern files.
+Currently, this needs a manually-created `bulk.yml` file placed in the same directory:
 
+```
+---
+path: "processed-filePaths.tsv"
+continue: true
+transfer: "ln_s"
+exclude: "clientpath"
+skip:
+  - checksum
+  - minmax
+columns:
+  - target
+  - path
+  - name
+  ```
