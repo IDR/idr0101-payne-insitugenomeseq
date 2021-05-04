@@ -139,3 +139,24 @@ columns:
   - path
   - name
   ```
+
+Create ROIs from CSV data_tables
+--------------------------------
+
+For Embryos in ExperimentB, we have `data_table.csv` files with each row representing
+a data measurement coming from a Point on the processed images.
+To create ROIs and Points on the processed images, we can run
+
+```
+# uses cli login
+python /uod/idr/metadata/idr0101-payne-insitugenomeseq/scripts/csv_to_points.py
+```
+
+For each processed Image such as `cell01_processed` in each Dataset of the `experimentB` Project, the script
+will open the corresponding CSV file, e.g:
+
+```
+20210421-ftp/annotations/embryo/data_tables/embryo01_data_table.csv
+```
+
+and filter the rows by the Cell ID, then create a Point for each, grouped into an ROI per chromosome.
