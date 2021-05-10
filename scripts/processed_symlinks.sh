@@ -111,12 +111,12 @@ for f in $files;
     # Add pattern file to the filePaths.tsv
     # if dsname is embryo01 Dataset is 'Embryo_01'
     projectname="idr0101-payne-insitugenomeseq/experimentB/"
-    datasetname=$(print "Embryo_%s" $cellnumber)
+    datasetname=$(printf "Embryo_%s" $cellnumber)
 
     # if dsname is fov001 Dataset is 'Fibroblasts_01'
     if [[ $dsname == *"fov"* ]]; then
         projectname="idr0101-payne-insitugenomeseq/experimentA/"
-        datasetname=$(print "Fibroblasts_%s" $cellnumber)
+        datasetname=$(printf "Fibroblasts_%s" $cellnumber)
     fi
 
     # remove first 2 chars './' from $f
