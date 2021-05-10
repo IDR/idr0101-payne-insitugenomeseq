@@ -105,18 +105,18 @@ for f in $files;
     dsname=$(basename $PWD)
     echo $dsname
     cellnumber=$(echo $dsname | tr -dc '0-9')
-    cellnumber=$(expr $cellnumber)
+    # e.g "01"
     echo $cellnumber
 
     # Add pattern file to the filePaths.tsv
     # if dsname is embryo01 Dataset is 'Embryo_01'
     projectname="idr0101-payne-insitugenomeseq/experimentB/"
-    datasetname=$(printf "Embryo_%02d" $cellnumber)
+    datasetname=$(print "Embryo_%s" $cellnumber)
 
     # if dsname is fov001 Dataset is 'Fibroblasts_01'
     if [[ $dsname == *"fov"* ]]; then
         projectname="idr0101-payne-insitugenomeseq/experimentA/"
-        datasetname=$(printf "Fibroblasts_%02d" $cellnumber)
+        datasetname=$(print "Fibroblasts_%s" $cellnumber)
     fi
 
     # remove first 2 chars './' from $f
