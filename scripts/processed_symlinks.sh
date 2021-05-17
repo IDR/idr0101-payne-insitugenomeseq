@@ -106,7 +106,7 @@ for f in $files;
     echo $dsname
     cellnumber=$(echo $dsname | tr -dc '0-9')
     # e.g "01" or "001"
-    cellnumber=$(expr $cellnumber)
+    cellnumber=$(echo $cellnumber | bc -l)
     echo $cellnumber
 
     # Add pattern file to the filePaths.tsv
