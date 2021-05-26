@@ -51,10 +51,8 @@ image_name = "cell%03d_processed"
 
 def get_image(project, embryo_id, cell_id):
     for dataset in project.listChildren():
-        print("dataset", dataset.name, dataset_name % embryo_id)
         if dataset.name == dataset_name % embryo_id:
             for image in dataset.listChildren():
-                print("image", image.name, image_name % embryo_id)
                 if image.name == image_name % cell_id:
                     return image
 
@@ -83,10 +81,10 @@ def get_omero_col_type(dtype):
 
 
 tables_path = (
-    "/uod/idr/filesets/idr0101-payne-insitugenomeseq/20210127-ftp/annotations/"
+    "/uod/idr/filesets/idr0101-payne-insitugenomeseq/20210421-ftp/annotations/"
 )
 # For local testing
-# tables_path = "/Users/wmoore/Desktop/IDR/idr0101/20210421-ftp/annotations/"
+# tables_path = "/Users/wmoore/Desktop/IDR/idr0101/data/idr0101-payne-insitugenomeseq/20210421-ftp/annotations/"
 
 tables_path += "embryo/data_tables/embryo%02d_data_table.csv"
 
@@ -104,24 +102,6 @@ def populate_metadata(image, file_name):
         client, image._obj, fileid=fileid, file=file_name, allow_nan=True
     )
     ctx.parse()
-
-
-def main(conn):
-
-    project = conn.getObject("Project", attributes={"name": project_name})
-    print("Project", project.id)
-    conn.SERVICE_OPTS.setOmeroGroup(project.getDetails().group.id.val)
-
-    # For each embryo, we don't know how many cells are present
-    # Simply start at 1 and keep checking until None found
-    for embryo_id in range(1, 58):
-        cell_id = 1
-        image = get_image(project, embryo_id, cell_id)
-        while image is not None:
-            print("Processing image", image.id, image.name)
-            process_image(conn, image, embryo_id, cell_id)
-            cell_id += 1
-            image = get_image(project, embryo_id, cell_id)
 
 
 def process_image(conn, image, embryo_id, cell_id):
@@ -162,12 +142,9 @@ def process_image(conn, image, embryo_id, cell_id):
             point = omero.model.PointI()
             point.textValue = rstring(row["chr_name"])
             # For Processed images we use x_um, y_um, z_um
-            # x in pixels = x_um * 9.2306
-            # y in pixels = y_um * 9.2306
-            # z in pixels = z_um / 2.5
             point.x = rdouble(row["x_um"] * 9.2306)
             point.y = rdouble(row["y_um"] * 9.2306)
-            point.theZ = rint(int(round(row["z_um"] / 2.5)))
+            point.theZ = rint(int(round(row["z_um"] * 2.5)))
             # For Hybrid images (embryo01_hyb.ims for embryo 1) use x_um_abs, y_um_abs, z_um_abs
             # point.x = rdouble(row["x_um_abs"] / pix_size_x)
             # point.y = rdouble(row["y_um_abs"] / pix_size_y)
@@ -200,6 +177,23 @@ def process_image(conn, image, embryo_id, cell_id):
 
     # Create OMERO.table from csv
     populate_metadata(image, csv_name)
+
+
+def main(conn):
+    project = conn.getObject("Project", attributes={"name": project_name})
+    print("Project", project.id)
+    conn.SERVICE_OPTS.setOmeroGroup(project.getDetails().group.id.val)
+
+    # For each embryo, we don't know how many cells are present
+    # Simply start at 1 and keep checking until None found
+    for embryo_id in range(1, 2):
+        cell_id = 1
+        image = get_image(project, embryo_id, cell_id)
+        while image is not None:
+            print("Processing image", image.id, image.name)
+            process_image(conn, image, embryo_id, cell_id)
+            cell_id += 1
+            image = get_image(project, embryo_id, cell_id)
 
 
 if __name__ == "__main__":
