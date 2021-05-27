@@ -142,17 +142,12 @@ def process_image(conn, image, embryo_id, cell_id):
             point = omero.model.PointI()
             point.textValue = rstring(row["chr_name"])
             # For Processed images we use x_um, y_um, z_um
-            point.x = rdouble(row["x_um"] * 9.2306)
-            point.y = rdouble(row["y_um"] * 9.2306)
+            # NB: switch X and Y (analysis used a different coordinate system)
+            point.y = rdouble(row["x_um"] * 9.2306)
+            point.x = rdouble(row["y_um"] * 9.2306)
             point.theZ = rint(int(round(row["z_um"] * 2.5)))
-            # For Hybrid images (embryo01_hyb.ims for embryo 1) use x_um_abs, y_um_abs, z_um_abs
-            # point.x = rdouble(row["x_um_abs"] / pix_size_x)
-            # point.y = rdouble(row["y_um_abs"] / pix_size_y)
-            # point.theZ = rint(int(round(row["z_um_abs"] / pix_size_z)))
             if chr_id <= len(colors):
-                # point.fillColor = rint(rgba_to_int(*colors[chr_id - 1]))
                 point.strokeColor = rint(rgba_to_int(*colors[chr_id - 1]))
-            # point.theT = rint(0)
 
             points.append(point)
 
@@ -163,7 +158,7 @@ def process_image(conn, image, embryo_id, cell_id):
         print("saved shapes", len(shapes))
         for row, shape in zip(rows_by_chr[chr_id], shapes):
             # checks that the order of shapes is same as order of rows
-            assert shape.theZ.val == round(row["z_um"] / 2.5)
+            assert shape.theZ.val == round(row["z_um"] * 2.5)
             row["roi"] = roi.id.val
             row["shape"] = shape.id.val
             df2 = df2.append(row)
@@ -195,6 +190,9 @@ def main(conn):
             cell_id += 1
             image = get_image(project, embryo_id, cell_id)
 
+# Usage:
+# cd idr0101-payne-insitugenomeseq
+# python scripts/csv_to_points.py
 
 if __name__ == "__main__":
     with omero.cli.cli_login() as c:
