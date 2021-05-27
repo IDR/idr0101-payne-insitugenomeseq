@@ -86,7 +86,7 @@ tables_path = (
     "/uod/idr/filesets/idr0101-payne-insitugenomeseq/20210421-ftp/annotations/"
 )
 # For local testing
-tables_path = "/Users/wmoore/Desktop/IDR/idr0101/data/idr0101-payne-insitugenomeseq/20210421-ftp/annotations/"
+# tables_path = "/Users/wmoore/Desktop/IDR/idr0101/data/idr0101-payne-insitugenomeseq/20210421-ftp/annotations/"
 
 tables_path += "embryo/data_tables/embryo%02d_data_table.csv"
 
