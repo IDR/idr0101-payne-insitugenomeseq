@@ -3,6 +3,8 @@
 import pandas
 import mimetypes
 from collections import defaultdict
+import tempfile
+import os
 
 import omero.clients
 import omero.cli
@@ -84,16 +86,17 @@ tables_path = (
     "/uod/idr/filesets/idr0101-payne-insitugenomeseq/20210421-ftp/annotations/"
 )
 # For local testing
-# tables_path = "/Users/wmoore/Desktop/IDR/idr0101/data/idr0101-payne-insitugenomeseq/20210421-ftp/annotations/"
+tables_path = "/Users/wmoore/Desktop/IDR/idr0101/data/idr0101-payne-insitugenomeseq/20210421-ftp/annotations/"
 
 tables_path += "embryo/data_tables/embryo%02d_data_table.csv"
 
 
-def populate_metadata(image, file_name):
+def populate_metadata(image, file_path, file_name):
     """Links the csv file to the image and parses it to create OMERO.table"""
     mt = mimetypes.guess_type(file_name, strict=False)[0]
+    # originalfile path will be ''
     fileann = conn.createFileAnnfromLocalFile(
-        file_name, mimetype=mt, ns=NSBULKANNOTATIONSRAW
+        file_path, origFilePathAndName=file_name, mimetype=mt, ns=NSBULKANNOTATIONSRAW
     )
     fileid = fileann.getFile().getId()
     image.linkAnnotation(fileann)
@@ -106,9 +109,6 @@ def populate_metadata(image, file_name):
 
 def process_image(conn, image, embryo_id, cell_id):
     updateService = conn.getUpdateService()
-    pix_size_x = image.getPixelSizeX()
-    pix_size_y = image.getPixelSizeY()
-    pix_size_z = image.getPixelSizeZ()
 
     # Read csv for each embryo
     table_pth = tables_path % embryo_id
@@ -164,14 +164,15 @@ def process_image(conn, image, embryo_id, cell_id):
             df2 = df2.append(row)
 
     csv_name = "embryo_rois_%02d.csv" % embryo_id
+    csv_path = os.path.join(tempfile.gettempdir(), csv_name)
     # Add # header roi, shape, other-col-types...
-    with open(csv_name, "w") as csv_out:
+    with open(csv_path, "w") as csv_out:
         csv_out.write("# header roi,l," + ",".join(col_types) + "\n")
 
-    df2.to_csv(csv_name, mode="a", index=False)
+    df2.to_csv(csv_path, mode="a", index=False)
 
     # Create OMERO.table from csv
-    populate_metadata(image, csv_name)
+    populate_metadata(image, csv_path, csv_name)
 
 
 def main(conn):
