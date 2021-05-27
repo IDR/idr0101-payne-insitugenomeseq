@@ -181,7 +181,7 @@ def main(conn):
 
     # For each embryo, we don't know how many cells are present
     # Simply start at 1 and keep checking until None found
-    for embryo_id in range(1, 2):
+    for embryo_id in range(1, 58):
         cell_id = 1
         image = get_image(project, embryo_id, cell_id)
         while image is not None:
