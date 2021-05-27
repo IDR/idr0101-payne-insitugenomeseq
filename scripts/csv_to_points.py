@@ -102,7 +102,7 @@ def populate_metadata(image, file_path, file_name):
     image.linkAnnotation(fileann)
     client = image._conn.c
     ctx = ParsingContext(
-        client, image._obj, fileid=fileid, file=file_name, allow_nan=True
+        client, image._obj, fileid=fileid, file=file_path, allow_nan=True
     )
     ctx.parse()
 
