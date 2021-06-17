@@ -46,10 +46,11 @@ colors = [
     (94, 65, 94),
 ]
 
-project_name = "idr0101-payne-insitugenomeseq/experimentB"
+projectB_name = "idr0101-payne-insitugenomeseq/experimentB"
+projectA_name = "idr0101-payne-insitugenomeseq/experimentA"
 
-def get_dataset(project, embryo_id):
-    for dataset in project.listChildren():
+def get_dataset(B, embryo_id):
+    for dataset in B.listChildren():
         if dataset.name == "Embryo_%02d" % embryo_id:
             return dataset
 
@@ -85,13 +86,16 @@ def get_omero_col_type(dtype):
     return "s"
 
 
-tables_path = (
-    "/uod/idr/filesets/idr0101-payne-insitugenomeseq/20210421-ftp/annotations/"
-)
-# For local testing
-# tables_path = "/Users/wmoore/Desktop/IDR/idr0101/data/idr0101-payne-insitugenomeseq/20210421-ftp/annotations/"
+base_path = "/uod/idr/filesets/idr0101-payne-insitugenomeseq/"
 
-tables_path += "embryo/data_tables/embryo%02d_data_table.csv"
+# For local testing
+# base_path = "/Users/wmoore/Desktop/IDR/idr0101/data/idr0101-payne-insitugenomeseq/"
+
+# for Experiment B, we have tables sent later with corrected coordinates for processed images
+tables_path_B = base_path + "20210421-ftp/annotations/embryo/data_tables/embryo%02d_data_table.csv"
+
+# EperimentA
+tables_path_A = base_path + "/20210127-ftp/annotations/pgp1f/data_tables/fov%02d_data_table.csv"
 
 
 def populate_metadata(image, file_path, file_name):
@@ -110,7 +114,7 @@ def populate_metadata(image, file_path, file_name):
     ctx.parse()
 
 
-def process_image(conn, image, embryo_id, cell_id=None):
+def process_image(conn, image, embryo_id, tables_path, cell_id=None):
 
     if image.getROICount() > 0:
         return
@@ -131,11 +135,12 @@ def process_image(conn, image, embryo_id, cell_id=None):
     max_chr = 0
   
 
-    # first, group rows by chr_id
+    # first, group rows by chr_id (or hg38_chr ?? for experimentA)
     if cell_id is None:
         for index, row in df.iterrows():
+            chr_val = row['chr'] if 'embryo' in tables_path else row['hg38_chr']
             # chr_id based on cell AND chr for _hybridization images
-            chr_id = (100 * row['cell_id']) + row['chr']       # e.g. 120
+            chr_id = (100 * row['cell_id']) + chr_val       # e.g. 120
             max_chr = max(max_chr, chr_id)
             rows_by_chr[chr_id].append(row)
     else:
@@ -146,8 +151,10 @@ def process_image(conn, image, embryo_id, cell_id=None):
             rows_by_chr[chr_id].append(row)
 
     def get_coord(row, xyz="x"):
-        if cell_id is None:
+        # corrected coords for experiment B _hyb
+        if cell_id is None and 'embryo' in tables_path:
             return row[xyz + "_um_abs"]
+        # experiment A or processed experiment B images
         return row[xyz + "_um"]
 
     # Create 1 ROI for each chr (per cell)
@@ -160,16 +167,25 @@ def process_image(conn, image, embryo_id, cell_id=None):
         # create a Point for each row
         for row in rows_by_chr[chr_id]:
             point = omero.model.PointI()
-            if cell_id is None:
-                point.textValue = rstring(f"cell{row['cell_id']}_{row['chr_name']}")
+            if 'embryo' in tables_path:
+                if cell_id is None:
+                    point.textValue = rstring(f"cell{row['cell_id']}_{row['chr_name']}")
+                else:
+                    point.textValue = rstring(row['chr_name'])
+                # NB: switch X and Y (analysis used a different coordinate system)
+                point.y = rdouble(get_coord(row, 'x') * 9.2306)
+                point.x = rdouble(get_coord(row, 'y') * 9.2306)
+                point.theZ = rint(int(round(get_coord(row, 'z') * 2.5)))
+                if chr_id <= len(colors):
+                    point.strokeColor = rint(rgba_to_int(*colors[chr_id - 1]))
             else:
-                point.textValue = rstring(row['chr_name'])
-            # NB: switch X and Y (analysis used a different coordinate system)
-            point.y = rdouble(get_coord(row, 'x') * 9.2306)
-            point.x = rdouble(get_coord(row, 'y') * 9.2306)
-            point.theZ = rint(int(round(get_coord(row, 'z') * 2.5)))
-            if chr_id <= len(colors):
-                point.strokeColor = rint(rgba_to_int(*colors[chr_id - 1]))
+                point.textValue = rstring(f"cell{row['cell_id']}_{row['hg38_chr']}")
+                # GUESSING for now!!!
+                point.y = rdouble(get_coord(row, 'x') * 90)
+                point.x = rdouble(get_coord(row, 'y') * 90)
+                point.theZ = rint(int(round(get_coord(row, 'z') * 5)))
+                if chr_id <= len(colors):
+                    point.strokeColor = rint(rgba_to_int(*colors[chr_id - 1]))
 
             points.append(point)
 
@@ -185,7 +201,10 @@ def process_image(conn, image, embryo_id, cell_id=None):
             row["shape"] = shape.id.val
             df2 = df2.append(row)
 
-    csv_name = "embryo_rois_%02d.csv" % embryo_id
+    if 'embryo' in tables_path:
+        csv_name = "embryo_rois_%02d.csv" % embryo_id
+    else:
+        csv_name = "pgp1f_rois_%02d.csv" % embryo_id
     csv_path = os.path.join(tempfile.gettempdir(), csv_name)
     # Add # header roi, shape, other-col-types...
     with open(csv_path, "w") as csv_out:
@@ -198,15 +217,28 @@ def process_image(conn, image, embryo_id, cell_id=None):
 
 
 def main(conn):
-    project = conn.getObject("Project", attributes={"name": project_name})
-    print("Project", project.id)
-    conn.SERVICE_OPTS.setOmeroGroup(project.getDetails().group.id.val)
+
+    projectA = conn.getObject("Project", attributes={"name": projectA_name})
+    print("Project A", projectA.id)
+    conn.SERVICE_OPTS.setOmeroGroup(projectA.getDetails().group.id.val)
+
+    for dataset in projectA.listChildren():
+        for image in dataset.listChildren():
+            if "_hyb" not in image.name:
+                continue
+            # image e.g. pgp1_fov01_hyb, pgp1_fov02_hyb etc.
+            fov_id = int(image.name.replace("pgp1_fov", "").replace("_hyb", ""))
+            process_image(conn, image, fov_id, tables_path_A)
+
+    # Embryos - Project B...
+    projectB = conn.getObject("Project", attributes={"name": projectB_name})
+    print("Project B", projectB.id)
 
     for embryo_id in range(1, 58):
-        dataset = get_dataset(project, embryo_id)
+        dataset = get_dataset(projectB, embryo_id)
         hyb_image = get_image(dataset, name_contains="_hyb")
         print("Processing hyb_image", hyb_image.id, hyb_image.name)
-        process_image(conn, hyb_image, embryo_id)
+        process_image(conn, hyb_image, embryo_id, tables_path_B)
 
         cell_id = 1
         # process cell001_processed images
@@ -215,7 +247,7 @@ def main(conn):
         image = get_image(dataset, name_contains="cell%03d_processed" % cell_id)
         while image is not None:
             print("Processing image", image.id, image.name)
-            process_image(conn, image, embryo_id, cell_id)
+            process_image(conn, image, embryo_id, tables_path_B, cell_id)
             cell_id += 1
             image = get_image(dataset, name_contains="cell%03d_processed" % cell_id)
 
