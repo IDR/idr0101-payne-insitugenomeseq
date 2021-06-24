@@ -31,7 +31,7 @@ projectA_name = "idr0101-payne-insitugenomeseq/experimentA"
 base_path = "/uod/idr/filesets/idr0101-payne-insitugenomeseq/"
 
 # For local testing
-base_path = "/Users/wmoore/Desktop/IDR/idr0101/data/idr0101-payne-insitugenomeseq/"
+# base_path = "/Users/wmoore/Desktop/IDR/idr0101/data/idr0101-payne-insitugenomeseq/"
 
 # for Experiment B, we have tables sent later with corrected coordinates for processed images
 seg_images_path_B = base_path + "20210421-ftp/processed/embryo/embryo%s/cell001/"
