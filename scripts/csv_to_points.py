@@ -95,7 +95,7 @@ base_path = "/uod/idr/filesets/idr0101-payne-insitugenomeseq/"
 tables_path_B = base_path + "20210421-ftp/annotations/embryo/data_tables/embryo%02d_data_table.csv"
 
 # EperimentA
-tables_path_A = base_path + "/20210127-ftp/annotations/pgp1f/data_tables/fov%02d_data_table.csv"
+tables_path_A = base_path + "20210127-ftp/annotations/pgp1f/data_tables/fov%02d_data_table.csv"
 
 
 def populate_metadata(image, file_path, file_name):
@@ -137,16 +137,22 @@ def process_image(conn, image, embryo_id, tables_path, cell_id=None):
 
     # first, group rows by chr_id (or hg38_chr ?? for experimentA)
     if cell_id is None:
+        # experimentB only...
         for index, row in df.iterrows():
-            chr_val = row['chr'] if 'embryo' in tables_path else row['hg38_chr']
             # chr_id based on cell AND chr for _hybridization images
-            chr_id = (100 * row['cell_id']) + chr_val       # e.g. 120
+            chr_id = (100 * row['cell_id']) + row['chr']       # e.g. 120
             max_chr = max(max_chr, chr_id)
             rows_by_chr[chr_id].append(row)
     else:
         # filter table rows by cell_id
-        for index, row in df.loc[df['cell_id'] == cell_id].iterrows():
-            chr_id = row['chr']
+        if 'embryo' in tables_path:
+            cell_key = 'cell_id'
+            chr_key = 'chr'
+        else:
+            cell_key = 'fov_cell'
+            chr_key = 'hg38_chr'
+        for index, row in df.loc[df[cell_key] == cell_id].iterrows():
+            chr_id = row[chr_key]
             max_chr = max(max_chr, chr_id)
             rows_by_chr[chr_id].append(row)
 
@@ -167,25 +173,19 @@ def process_image(conn, image, embryo_id, tables_path, cell_id=None):
         # create a Point for each row
         for row in rows_by_chr[chr_id]:
             point = omero.model.PointI()
+            # NB: switch X and Y (analysis used a different coordinate system)
+            point.y = rdouble(get_coord(row, 'x') * 9.2306)
+            point.x = rdouble(get_coord(row, 'y') * 9.2306)
+            point.theZ = rint(int(round(get_coord(row, 'z') * 2.5)))
             if 'embryo' in tables_path:
                 if cell_id is None:
                     point.textValue = rstring(f"cell{row['cell_id']}_{row['chr_name']}")
                 else:
                     point.textValue = rstring(row['chr_name'])
-                # NB: switch X and Y (analysis used a different coordinate system)
-                point.y = rdouble(get_coord(row, 'x') * 9.2306)
-                point.x = rdouble(get_coord(row, 'y') * 9.2306)
-                point.theZ = rint(int(round(get_coord(row, 'z') * 2.5)))
                 if chr_id <= len(colors):
                     point.strokeColor = rint(rgba_to_int(*colors[chr_id - 1]))
             else:
-                point.textValue = rstring(f"cell{row['cell_id']}_{row['hg38_chr']}")
-                # GUESSING for now!!!
-                point.y = rdouble(get_coord(row, 'x') * 90)
-                point.x = rdouble(get_coord(row, 'y') * 90)
-                point.theZ = rint(int(round(get_coord(row, 'z') * 5)))
-                if chr_id <= len(colors):
-                    point.strokeColor = rint(rgba_to_int(*colors[chr_id - 1]))
+                point.textValue = rstring(f"chr_{row['hg38_chr']}")
 
             points.append(point)
 
@@ -224,11 +224,14 @@ def main(conn):
 
     for dataset in projectA.listChildren():
         for image in dataset.listChildren():
-            if "_hyb" not in image.name:
+            print('image.name', image.name)
+            if "_processed" not in image.name:
                 continue
             # image e.g. pgp1_fov01_hyb, pgp1_fov02_hyb etc.
-            fov_id = int(image.name.replace("pgp1_fov", "").replace("_hyb", ""))
-            process_image(conn, image, fov_id, tables_path_A)
+            fov_id = int(dataset.name.replace("Fibroblasts_", ""))
+            cell_id = int(image.name.replace("cell", "").replace("_processed", ""))
+            print("fov", fov_id, "cell", cell_id)
+            process_image(conn, image, fov_id, tables_path_A, cell_id)
 
     # Embryos - Project B...
     projectB = conn.getObject("Project", attributes={"name": projectB_name})
