@@ -34,13 +34,10 @@ base_path = "/uod/idr/filesets/idr0101-payne-insitugenomeseq/"
 # base_path = "/Users/wmoore/Desktop/IDR/idr0101/data/idr0101-payne-insitugenomeseq/"
 
 # for Experiment B, we have tables sent later with corrected coordinates for processed images
-seg_images_path_B = base_path + "20210421-ftp/processed/embryo/embryo%s/cell001/"
-# EperimentA
+seg_images_path_B = base_path + "20210421-ftp/processed/embryo/embryo%s/%s/"
+# ExperimentA
 seg_images_path_A = base_path + "20210421-ftp/processed/pgp1/fov0%s/%s/"
 
-MISSING_FILES = [
-    "/uod/idr/filesets/idr0101-payne-insitugenomeseq/20210421-ftp/processed/embryo/embryo02/cell001/seg_nucleus.tif"
-    ]
 
 RGBA = (255, 255, 255, 128)
 
@@ -153,13 +150,15 @@ def main(conn):
             # dataset e.g. Embryo_01
             print('Image', image.name)
             embryo_id = dataset.name.replace("Embryo_", "")
-            images_path = seg_images_path_B % embryo_id
+            image_id = image.name.replace("_processed", "")
+            images_path = seg_images_path_B % (embryo_id, image_id)
 
             delete_mask_rois(conn, image)
 
             for seg in ['nucleus', 'npbs', 'lamin', 'cenpa']:
                 seg_path = images_path + 'seg_%s.tif' % seg
-                if seg_path in MISSING_FILES:
+                if not os.path.exists(seg_path):
+                    print("FILE NOT FOUND", seg_path)
                     continue
                 print('seg', seg)
                 roi = create_roi(seg_path, seg)
