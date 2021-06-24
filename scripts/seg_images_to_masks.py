@@ -38,6 +38,10 @@ seg_images_path_B = base_path + "20210421-ftp/processed/embryo/embryo%s/cell001/
 # EperimentA
 seg_images_path_A = base_path + "20210421-ftp/processed/pgp1/fov0%s/%s/"
 
+MISSING_FILES = [
+    "/uod/idr/filesets/idr0101-payne-insitugenomeseq/20210421-ftp/processed/embryo/embryo02/cell001/seg_nucleus.tif"
+    ]
+
 RGBA = (255, 255, 255, 128)
 
 
@@ -155,6 +159,8 @@ def main(conn):
 
             for seg in ['nucleus', 'npbs', 'lamin', 'cenpa']:
                 seg_path = images_path + 'seg_%s.tif' % seg
+                if seg_path in MISSING_FILES:
+                    continue
                 print('seg', seg)
                 roi = create_roi(seg_path, seg)
                 roi.setImage(image._obj)
