@@ -9,7 +9,7 @@ import os
 import omero.clients
 import omero.cli
 import omero
-from omero.rtypes import rint, rdouble, rstring
+from omero.rtypes import rint, rdouble, rstring, unwrap
 from omero_metadata.populate import ParsingContext
 from omero.util.metadata_utils import NSBULKANNOTATIONSRAW
 
@@ -64,13 +64,24 @@ def get_image(dataset, name_contains):
 
 def create_roi(updateService, image, shapes):
     roi = omero.model.RoiI()
-    # NB: $ populate metadata Image:1 --file data.csv NEEDS roi names
-    name = shapes[0].textValue.val
-    roi.name = rstring(name)
+    # Give ROI a name if first shape has one
+    name = unwrap(shapes[0].textValue)
+    if name:
+        roi.name = rstring(name)
     roi.setImage(image._obj)
     for shape in shapes:
         roi.addShape(shape)
     return updateService.saveAndReturnObject(roi)
+
+
+def delete_rois(conn, im):
+    result = conn.getRoiService().findByImage(im.id, None)
+    to_delete = []
+    for roi in result.rois:
+        to_delete.append(roi.getId().getValue())
+    if to_delete:
+        print("Deleting existing {} rois".format(len(to_delete)))
+        conn.deleteObjects("Roi", to_delete, deleteChildren=True, wait=True)
 
 
 def rgba_to_int(red, green, blue, alpha=255):
@@ -91,11 +102,47 @@ base_path = "/uod/idr/filesets/idr0101-payne-insitugenomeseq/"
 # For local testing
 # base_path = "/Users/wmoore/Desktop/IDR/idr0101/data/idr0101-payne-insitugenomeseq/"
 
+# ExperimentA
+tables_path_A = base_path + "20210127-ftp/annotations/pgp1f/data_tables/fov%02d_data_table.csv"
+bounds_path_A = base_path + "20210127-ftp/annotations/pgp1f/cell_bounds/fov%02d_cell_bounds.txt"
+
 # for Experiment B, we have tables sent later with corrected coordinates for processed images
 tables_path_B = base_path + "20210421-ftp/annotations/embryo/data_tables/embryo%02d_data_table.csv"
+bounds_path_B = base_path + "20210127-ftp/annotations/embryo/embryo_bounds/embryo%02d_bounds.txt"
 
-# EperimentA
-tables_path_A = base_path + "20210127-ftp/annotations/pgp1f/data_tables/fov%02d_data_table.csv"
+
+def process_bounds(conn, image, image_id, file_path):
+
+    bounds_pth = file_path % image_id
+    print('bounds_pth', bounds_pth)
+
+    updateService = conn.getUpdateService()
+
+    with open(bounds_pth, 'r') as f:
+        for l in f.readlines():
+            if not l:
+                continue
+            coords = [float(n) for n in l.split(",")]
+            if len(coords) == 6:
+                x_start, y_start, z_start, x_length, y_length, z_length = coords
+            else:
+                x_start, y_start, x_length, y_length = coords
+                z_start = -1    # don't set theZ
+                z_length = 1    # single rectangle across all Z
+
+            shapes = []
+            for z in range(int(z_start), int(z_start + z_length)):
+                rect = omero.model.RectangleI()
+                # coords are in pixel units
+                rect.x = rdouble(x_start)
+                rect.y = rdouble(y_start)
+                rect.width = rdouble(x_length)
+                rect.height = rdouble(y_length)
+                if z > -1:
+                    rect.theZ = rint(z)
+                shapes.append(rect)
+
+            roi = create_roi(updateService, image, shapes)
 
 
 def populate_metadata(image, file_path, file_name):
@@ -224,13 +271,18 @@ def main(conn):
 
     for dataset in projectA.listChildren():
         for image in dataset.listChildren():
+            fov_id = int(dataset.name.replace("Fibroblasts_", ""))
             print('image.name', image.name)
             if "_processed" not in image.name:
+                delete_rois(conn, image)
+                # Add bounds to _seq images as they seem to fit better than _hyb
+                if "_seq" in image.name:
+                    process_bounds(conn, image, fov_id, bounds_path_A)
                 continue
-            # image e.g. pgp1_fov01_hyb, pgp1_fov02_hyb etc.
-            fov_id = int(dataset.name.replace("Fibroblasts_", ""))
+            # name e.g. 'cell002_processed'
             cell_id = int(image.name.replace("cell", "").replace("_processed", ""))
             print("fov", fov_id, "cell", cell_id)
+            delete_rois(conn, image)
             process_image(conn, image, fov_id, tables_path_A, cell_id)
 
     # Embryos - Project B...
@@ -239,9 +291,14 @@ def main(conn):
 
     for embryo_id in range(1, 58):
         dataset = get_dataset(projectB, embryo_id)
+        # "I've adjusted some of the columns (x_um_abs, y_um_abs) in the embryo data tables such that
+        # you can now lay the data points over the hybridization probe images (e.g. embryo01_hyb.ims for embryo 1)"
         hyb_image = get_image(dataset, name_contains="_hyb")
         print("Processing hyb_image", hyb_image.id, hyb_image.name)
+        delete_rois(conn, hyb_image)
         process_image(conn, hyb_image, embryo_id, tables_path_B)
+        # Add bounds to _hyb images as they seem to fit better than _seq (opposite of experimentA)
+        process_bounds(conn, hyb_image, embryo_id, bounds_path_B)
 
         cell_id = 1
         # process cell001_processed images
@@ -250,6 +307,7 @@ def main(conn):
         image = get_image(dataset, name_contains="cell%03d_processed" % cell_id)
         while image is not None:
             print("Processing image", image.id, image.name)
+            delete_rois(conn, image)
             process_image(conn, image, embryo_id, tables_path_B, cell_id)
             cell_id += 1
             image = get_image(dataset, name_contains="cell%03d_processed" % cell_id)
