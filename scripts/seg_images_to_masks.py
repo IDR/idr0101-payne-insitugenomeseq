@@ -33,8 +33,10 @@ base_path = "/uod/idr/filesets/idr0101-payne-insitugenomeseq/"
 # For local testing
 # base_path = "/Users/wmoore/Desktop/IDR/idr0101/data/idr0101-payne-insitugenomeseq/"
 
-# for Experiment B, we have tables sent later with corrected coordinates for processed images
+# for Experiment B, we have seg images in dir like embryo01/cell001/seg_nucleus.tif
 seg_images_path_B = base_path + "20210421-ftp/processed/embryo/embryo%s/%s/"
+# missing images uploaded like 20210713-ftp/embryo01_cell001_seg_nucleus.tif
+seg_images_path_B2 = base_path + "20210713-ftp/embryo%s_%s_"
 # ExperimentA
 seg_images_path_A = base_path + "20210421-ftp/processed/pgp1/fov0%s/%s/"
 
@@ -103,6 +105,7 @@ def create_roi(seg_path, text):
     # read each binary tif plane from stack
     planes = [np.asarray(plane) for plane in ImageSequence.Iterator(im)]
     roi = omero.model.RoiI()
+    roi.name = rstring(text)
     mask_count = 0
     for z, plane in enumerate(planes):
         mask = mask_from_binary_image(plane, z, text, RGBA)
@@ -141,6 +144,8 @@ def main(conn):
                 updateService.saveAndReturnObject(roi)
 
     projectB = conn.getObject("Project", attributes={"name": projectB_name})
+    print("Project B", projectB.id)
+    not_found = []
     for dataset in projectB.listChildren():
         print("Dataset", dataset.name)
         for image in dataset.listChildren():
@@ -150,6 +155,7 @@ def main(conn):
             # dataset e.g. Embryo_01
             print('Image', image.name)
             embryo_id = dataset.name.replace("Embryo_", "")
+            # image e.g. cell002_processed
             image_id = image.name.replace("_processed", "")
             images_path = seg_images_path_B % (embryo_id, image_id)
 
@@ -158,12 +164,18 @@ def main(conn):
             for seg in ['nucleus', 'npbs', 'lamin', 'cenpa']:
                 seg_path = images_path + 'seg_%s.tif' % seg
                 if not os.path.exists(seg_path):
-                    print("FILE NOT FOUND", seg_path)
-                    continue
+                    # check in later upload dir
+                    seg_path = (seg_images_path_B2 % (embryo_id, image_id)) + 'seg_%s.tif' % seg
+                    if not os.path.exists(seg_path):
+                        print("not found", seg_path)
+                        not_found.append(seg_path)
+                        continue
                 print('seg', seg)
                 roi = create_roi(seg_path, seg)
                 roi.setImage(image._obj)
                 updateService.saveAndReturnObject(roi)
+
+    print("NOT FOUND:", not_found)
 
 # Usage:
 # cd idr0101-payne-insitugenomeseq
