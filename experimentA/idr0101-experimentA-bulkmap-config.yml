@@ -11,8 +11,8 @@ defaults:
 
 columns:
 
-  - name: Channels
-    clientname: Channels
+  - name: Assay Name
+    clientname: Assay Name
     include: yes
 
 

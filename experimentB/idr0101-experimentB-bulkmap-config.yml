@@ -23,12 +23,12 @@ columns:
     clientname: Developmental Stage
     include: yes
 
-  - name: Comment [Image File Comments]
-    clientname: Image File Comments
+  - name: Assay Name
+    clientname: Assay Name
     include: yes
 
-  - name: Channels
-    clientname: Channels
+  - name: Comment [Image File Comments]
+    clientname: Image File Comments
     include: yes
 
 
