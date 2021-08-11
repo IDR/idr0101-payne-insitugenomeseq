@@ -7,7 +7,6 @@
 import os
 import numpy as np
 from PIL import Image, ImageSequence
-from numpy.lib.arraysetops import isin
 import omero
 import omero.cli
 from omero.gateway import BlitzGateway
