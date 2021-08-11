@@ -143,7 +143,7 @@ columns:
 Create ROIs from CSV data_tables
 --------------------------------
 
-For Embryos in ExperimentB, we have `data_table.csv` files with each row representing
+For Fibroblasts and Embryos, we have `data_table.csv` files with each row representing
 a data measurement coming from a Point on the processed images.
 To create ROIs and Points on the processed images, we can run
 
@@ -152,7 +152,7 @@ To create ROIs and Points on the processed images, we can run
 python /uod/idr/metadata/idr0101-payne-insitugenomeseq/scripts/csv_to_points.py
 ```
 
-For each processed Image such as `cell01_processed` in each Dataset of the `experimentB` Project, the script
+For each processed Image such as `cell01_processed`, the script
 will open the corresponding CSV file, e.g:
 
 ```
@@ -160,3 +160,16 @@ will open the corresponding CSV file, e.g:
 ```
 
 and filter the rows by the Cell ID, then create a Point for each, grouped into an ROI per chromosome.
+
+A bulk annotation table is created with 1 row per Point, and attached to the Image.
+
+Also, the `csv_to_points.py` uses files like `20210127-ftp/annotations/pgp1f/cell_bounds/fov01_cell_bounds.txt`
+to add Rectangles the original `_seq` images (experiment A) or `_hyb` images (experimentB) to show the regions
+corresponding to the processed images.
+
+
+Add Masks to processed images
+-----------------------------
+
+The `seg_images_to_masks.py` script uses the `_seg` images like
+`20210421-ftp/processed/embryo/embryo01/cell001/seg_nucleus.tif` to add Masks to the processed images.
