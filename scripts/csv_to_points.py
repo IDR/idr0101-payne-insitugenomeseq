@@ -146,17 +146,10 @@ def process_bounds(conn, image, image_id, file_path):
 
 
 def populate_metadata(image, file_path, file_name):
-    """Links the csv file to the image and parses it to create OMERO.table"""
-    mt = mimetypes.guess_type(file_name, strict=False)[0]
-    # originalfile path will be ''
-    fileann = conn.createFileAnnfromLocalFile(
-        file_path, origFilePathAndName=file_name, mimetype=mt, ns=NSBULKANNOTATIONSRAW
-    )
-    fileid = fileann.getFile().getId()
-    image.linkAnnotation(fileann)
+    """Parses csv to create OMERO.table"""
     client = image._conn.c
     ctx = ParsingContext(
-        client, image._obj, fileid=fileid, file=file_path, allow_nan=True
+        client, image._obj, file=file_path, allow_nan=True
     )
     ctx.parse()
 
