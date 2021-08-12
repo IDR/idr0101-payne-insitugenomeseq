@@ -173,3 +173,13 @@ Add Masks to processed images
 
 The `seg_images_to_masks.py` script uses the `_seg` images like
 `20210421-ftp/processed/embryo/embryo01/cell001/seg_nucleus.tif` to add Masks to the processed images.
+
+
+Pixels sizes
+------------
+
+Set Pixel size X & Y to 0.108335 and Z to 0.4 for both Projects:
+
+```
+$ omero metadata pixelsize --x 0.108335 --y 0.108335 --z 0.4 Project:ID
+```
