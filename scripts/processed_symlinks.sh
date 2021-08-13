@@ -130,3 +130,18 @@ for f in $files;
 # back to where we started so that the next cd $f works
 cd $curr_dir
 done
+
+
+# Since 2 files are named incorrectly, we need to create symlinks manually (and update pattern file)
+
+cd /uod/idr/filesets/idr0101-payne-insitugenomeseq/20210421-processed/pgp1/fov018/cell001/
+echo "cell001_t<01-18>_c<01-06>.tif" >> cell001.pattern
+for i in {1..18}
+do
+    symlink=$(printf "cell001_t%02d_c05.tif" $i)
+    echo $symlink
+    ln -s ../../../../20210421-ftp/processed/pgp1/fov018/cell001/018-all-r00-r1.tif $symlink
+    symlink=$(printf "cell001_t%02d_c06.tif" $i)
+    echo $symlink
+    ln -s ../../../../20210421-ftp/processed/pgp1/fov018/cell001/018-all-r00-r2.tif $symlink
+done
