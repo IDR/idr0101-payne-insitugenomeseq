@@ -42,8 +42,15 @@ seg_images_path_A = base_path + "20210421-ftp/processed/pgp1/fov0%s/%s/"
 
 RGBA = (255, 255, 255, 128)
 
+colors = {
+    'nucleus': (255, 255, 255, 64),
+    'npbs': (255, 0, 0, 64),
+    'lamin': (0, 255, 0, 64),
+    'cenpa': (0, 0, 255, 64)
+}
 
-def mask_from_binary_image(binim, z, text=None, rgba=None):
+
+def mask_from_binary_image(binim, z, text=None):
     """
     Create a mask shape from a binary image (background=0)
 
@@ -79,6 +86,7 @@ def mask_from_binary_image(binim, z, text=None, rgba=None):
         mask.setTheZ(rint(z))
     if text is not None:
         mask.setTextValue(rstring(text))
+    rgba = colors.get(text)
     if rgba is not None:
         ch = ColorHolder.fromRGBA(*rgba)
         mask.setFillColor(rint(ch.getInt()))
@@ -107,7 +115,7 @@ def create_roi(seg_path, text):
     roi.name = rstring(text)
     mask_count = 0
     for z, plane in enumerate(planes):
-        mask = mask_from_binary_image(plane, z, text, RGBA)
+        mask = mask_from_binary_image(plane, z, text)
         if mask is not None:
             mask_count += 1
             roi.addShape(mask)
