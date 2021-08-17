@@ -1,0 +1,52 @@
+---
+channels:
+    1:
+        label: cy 1
+        active: true
+        color: FFFFFF
+        end: 1000
+        start: 0.0
+    2:
+        label: cy 2
+        active: true
+        color: FFFFFF
+        end: 1000
+        start: 0.0
+    3:
+        label: cy 3
+        active: true
+        color: FFFFFF
+        end: 1000
+        start: 0.0
+    4:
+        label: cy 4
+        active: true
+        color: FFFFFF
+        end: 1000
+        start: 0.0
+    5:
+        label: CENP-A
+        active: true
+        color: 00FF00
+        end: 500
+        start: 100
+    6:
+        label: DAPI
+        active: true
+        color: 0000FF
+        end: 750
+        start: 100
+    7:
+        label: Hyb probe
+        active: true
+        color: FF0000
+        end: 500
+        start: 0
+    8:
+        label: Lamin-B
+        active: true
+        color: FF0000
+        end: 200
+        start: 100
+greyscale: false
+version: 2

@@ -1,0 +1,26 @@
+---
+channels:
+    1:
+        label: CENP-A
+        active: true
+        color: FF0000
+        end: 150
+        start: 100
+    2:
+        label: empty
+        active: false
+        color: 000000
+    3:
+        label: Lamin-B
+        active: true
+        color: 00FF00
+        end: 150
+        start: 80
+    4:
+        label: DAPI
+        active: true
+        color: 0000FF
+        end: 250
+        start: 100
+greyscale: false
+version: 2

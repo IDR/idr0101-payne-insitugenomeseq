@@ -1,0 +1,17 @@
+---
+channels:
+    1:
+        label: Hyb probe
+        color: FF0000
+        active: true
+        end: 1500.0
+        start: 100.0
+    2:
+        label: DAPI
+        color: 0000FF
+        active: true
+        end: 500.0
+        start: 100.0
+
+greyscale: false
+version: 2

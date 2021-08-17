@@ -1,0 +1,40 @@
+---
+channels:
+    1:
+        label: cy 1
+        active: true
+        color: FFFFFF
+        end: 1200.0
+        start: 0.0
+    2:
+        label: cy 2
+        active: true
+        color: FFFFFF
+        end: 1200.0
+        start: 0.0
+    3:
+        label: cy 3
+        active: true
+        color: FFFFFF
+        end: 1200.0
+        start: 0.0
+    4:
+        label: cy 4
+        active: true
+        color: FFFFFF
+        end: 1200.0
+        start: 0.0
+    5:
+        label: DAPI
+        active: true
+        color: 0000FF
+        end: 5000.0
+        start: 0.0
+    6:
+        label: Hyb probe
+        active: true
+        color: FF0000
+        end: 100.0
+        start: 0.0
+greyscale: false
+version: 2

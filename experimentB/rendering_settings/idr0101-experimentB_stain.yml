@@ -1,0 +1,25 @@
+---
+channels:
+    1:
+        label: CENP-A
+        active: true
+        color: FF0000
+        end: 150
+        start: 100
+    2:
+        label: Lamin-B
+        active: true
+        color: 00FF00
+        end: 150
+        start: 100
+    3:
+        label: DAPI
+        active: true
+        color: 0000FF
+        end: 250
+        start: 100
+greyscale: false
+version: 2
+
+# NB: Images embryo01_stain, embryo25_stain, embryo26_stain, embryo27_stain
+# have 4 channels: CENP-A, empty, Lamin-B, DAPI

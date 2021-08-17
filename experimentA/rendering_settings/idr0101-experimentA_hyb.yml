@@ -1,0 +1,23 @@
+---
+channels:
+    1:
+        label: empty
+        active: false
+    2:
+        label: empty
+        active: false
+    3:
+        label: empty
+        active: false
+    4:
+        label: empty
+        active: false
+    5:
+        label: DAPI
+        color: FFFFFF
+        active: true
+        end: 5000.0
+        start: 200.0
+z: 10
+greyscale: false
+version: 2

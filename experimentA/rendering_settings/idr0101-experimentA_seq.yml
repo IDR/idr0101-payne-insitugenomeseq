@@ -1,0 +1,29 @@
+---
+channels:
+    1:
+        label: cy 1
+        active: true
+        color: FF0000
+        end: 800
+        start: 50
+    2:
+        label: cy 2
+        active: true
+        color: 00FF00
+        end: 1000
+        start: 50
+    3:
+        label: cy 3
+        active: true
+        color: 0000FF
+        end: 300
+        start: 100
+    4:
+        label: cy 4
+        active: true
+        color: FF00FF
+        end: 800
+        start: 100
+z: 10
+greyscale: false
+version: 2
