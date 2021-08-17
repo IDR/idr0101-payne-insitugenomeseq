@@ -1,0 +1,26 @@
+
+This is not a script but the commands used to set rendering settings to images by name
+
+# experiment A
+python scripts/find_images.py hyb Project:1551 | cut -f 2 >> /tmp/hyb.ids
+python scripts/find_images.py seq Project:1551 | cut -f 2 >> /tmp/seq.ids
+python scripts/find_images.py processed Project:1551 | cut -f 2 >> /tmp/processed.ids
+
+for i in `cat /tmp/hyb.ids`; do omero render set $i experimentA/rendering_settings/idr0101-experimentA_hyb.yml; done
+for i in `cat /tmp/seq.ids`; do omero render set $i experimentA/rendering_settings/idr0101-experimentA_seq.yml; done
+for i in `cat /tmp/processed.ids`; do omero render set $i experimentA/rendering_settings/idr0101-experimentA_processed.yml; done
+
+# experiment B
+python scripts/find_images.py hyb Project:1552 | cut -f 2 > /tmp/hybB.ids
+python scripts/find_images.py seq Project:1552 | cut -f 2 > /tmp/seqB.ids
+python scripts/find_images.py stain Project:1552 | cut -f 2 > /tmp/stainB.ids
+# some _stain images have 4 channels
+for name in 01_stain 25_stain 26_stain 27_stain; do python scripts/find_images.py $name Project:1552 | cut -f 2 >> /tmp/stainB_4ch.ids; done
+python scripts/find_images.py processed Project:1552 | cut -f 2 >> /tmp/processedB.ids
+
+for i in `cat /tmp/hybB.ids`; do omero render set $i experimentB/rendering_settings/idr0101-experimentB_hyb.yml; done
+for i in `cat /tmp/seqB.ids`; do omero render set $i experimentB/rendering_settings/idr0101-experimentB_seq.yml; done
+for i in `cat /tmp/stainB.ids`; do omero render set $i experimentB/rendering_settings/idr0101-experimentB_stain.yml; done
+# fix 4-channel _stain images AFTER other _stain images
+for i in `cat /tmp/stainB_4ch.ids`; do omero render set $i experimentB/rendering_settings/idr0101-experimentB_stain_4ch.yml; done
+for i in `cat /tmp/processedB.ids`; do omero render set $i experimentB/rendering_settings/idr0101-experimentB_processed.yml; done
