@@ -135,7 +135,7 @@ done
 # Since 2 files are named incorrectly, we need to create symlinks manually (and update pattern file)
 
 cd /uod/idr/filesets/idr0101-payne-insitugenomeseq/20210421-processed/pgp1/fov018/cell001/
-echo "cell001_t<01-18>_c<01-06>.tif" >> cell001.pattern
+echo "cell001_t<01-18>_c<01-06>.tif" > cell001.pattern
 for i in {1..18}
 do
     symlink=$(printf "cell001_t%02d_c05.tif" $i)
