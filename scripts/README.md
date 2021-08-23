@@ -164,7 +164,7 @@ and filter the rows by the Cell ID, then create a Point for each, grouped into a
 A bulk annotation table is created with 1 row per Point, and attached to the Image.
 
 Also, the `csv_to_points.py` uses files like `20210127-ftp/annotations/pgp1f/cell_bounds/fov01_cell_bounds.txt`
-to add Rectangles the original `_seq` images (experiment A) or `_hyb` images (experimentB) to show the regions
+to add Rectangles to the original `_seq` images (experiment A) or `_hyb` images (experimentB) to show the regions
 corresponding to the processed images.
 
 
@@ -183,3 +183,10 @@ Set Pixel size X & Y to 0.108335 and Z to 0.4 for both Projects:
 ```
 $ omero metadata pixelsize --x 0.108335 --y 0.108335 --z 0.4 Project:ID
 ```
+
+
+Rendering settings
+------------------
+
+See commands in `set_renderingsettings.txt` used to apply rendering settings to images
+based on their names.
