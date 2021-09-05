@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 import pandas
-import mimetypes
 from collections import defaultdict
 import tempfile
 import os
+import decimal
 
 import omero.clients
 import omero.cli
@@ -19,32 +19,32 @@ a Point for each row.
 """
 
 # colors picked to match figures in the paper
-colors = [
-    (38, 47, 143),
-    (249, 16, 30),
-    (91, 180, 43),
-    (226, 44, 144),
-    (248, 217, 48),
-    (15, 65, 11),
-    (121, 103, 186),
-    (158, 41, 48),
-    (111, 198, 149),
-    (43, 106, 124),
-    (18, 10, 98),
-    (143, 200, 73),
-    (233, 146, 202),
-    (144, 51, 157),
-    (93, 9, 69),
-    (242, 22, 80),
-    (248, 184, 110),
-    (17, 20, 8),
-    (121, 159, 92),
-    (250, 106, 33),
-    (113, 87, 23),
-    (152, 215, 215),
-    (172, 188, 219),
-    (94, 65, 94),
-]
+colors = {
+    'chr1': (38, 47, 143),
+    'chr2': (249, 16, 30),
+    'chr3': (91, 180, 43),
+    'chr4': (226, 44, 144),
+    'chr5': (248, 217, 48),
+    'chr6': (15, 65, 11),
+    'chr7': (121, 103, 186),
+    'chr8': (158, 41, 48),
+    'chr9': (111, 198, 149),
+    'chr10': (43, 106, 124),
+    'chr11': (18, 10, 98),
+    'chr12': (143, 200, 73),
+    'chr13': (233, 146, 202),
+    'chr14': (144, 51, 157),
+    'chr15': (93, 9, 69),
+    'chr16': (242, 22, 80),
+    'chr17': (248, 184, 110),
+    'chr18': (17, 20, 8),
+    'chr19': (121, 159, 92),
+    'chr20': (250, 106, 33),
+    'chr21': (113, 87, 23),
+    'chr22': (152, 215, 215),
+    'chrX': (172, 188, 219),
+    'chrY': (94, 65, 94),
+}
 
 projectB_name = "idr0101-payne-insitugenomeseq/experimentB"
 projectA_name = "idr0101-payne-insitugenomeseq/experimentA"
@@ -216,16 +216,21 @@ def process_image(conn, image, embryo_id, tables_path, cell_id=None):
             # NB: switch X and Y (analysis used a different coordinate system)
             point.y = rdouble(get_coord(row, 'x') * 9.2306)
             point.x = rdouble(get_coord(row, 'y') * 9.2306)
-            point.theZ = rint(int(round(get_coord(row, 'z') * 2.5)))
+            # We don't want Python3 behaviour of rounding .5 to even number - always round up
+            point.theZ = rint(int(decimal.Decimal(get_coord(row, 'z') * 2.5).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP)))
             if 'embryo' in tables_path:
+                # experimentB - get chr number from name
+                chr_name = row['chr_name']
                 if cell_id is None:
                     point.textValue = rstring(f"cell{row['cell_id']}_{row['chr_name']}")
                 else:
                     point.textValue = rstring(row['chr_name'])
-                if chr_id <= len(colors):
-                    point.strokeColor = rint(rgba_to_int(*colors[chr_id - 1]))
             else:
-                point.textValue = rstring(f"chr_{row['hg38_chr']}")
+                # experimentA - no cell ID included in chr_id
+                chr_name = 'hg38_chr' + str(row['hg38_chr'])
+                point.textValue = rstring(chr_name)
+            if chr_name in colors:
+                point.strokeColor = rint(rgba_to_int(*colors[chr_name]))
 
             points.append(point)
 
@@ -236,7 +241,7 @@ def process_image(conn, image, embryo_id, tables_path, cell_id=None):
         print("saved shapes", len(shapes))
         for row, shape in zip(rows_by_chr[chr_id], shapes):
             # checks that the order of shapes is same as order of rows
-            assert shape.theZ.val == round(get_coord(row, 'z') * 2.5)
+            assert shape.theZ.val == decimal.Decimal(get_coord(row, 'z') * 2.5).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP)
             row["roi"] = roi.id.val
             row["shape"] = shape.id.val
             df2 = df2.append(row)
