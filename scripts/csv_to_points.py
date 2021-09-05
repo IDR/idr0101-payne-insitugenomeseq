@@ -227,8 +227,8 @@ def process_image(conn, image, embryo_id, tables_path, cell_id=None):
                     point.textValue = rstring(row['chr_name'])
             else:
                 # experimentA - no cell ID included in chr_id
-                chr_name = 'hg38_chr' + str(row['hg38_chr'])
-                point.textValue = rstring(chr_name)
+                point.textValue = rstring('hg38_chr' + str(row['hg38_chr']))
+                chr_name = 'chr' + str(row['hg38_chr'])
             if chr_name in colors:
                 point.strokeColor = rint(rgba_to_int(*colors[chr_name]))
 
