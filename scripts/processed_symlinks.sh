@@ -140,8 +140,8 @@ for i in {1..18}
 do
     symlink=$(printf "cell001_t%02d_c05.tif" $i)
     echo $symlink
-    ln -s ../../../../20210421-ftp/processed/pgp1/fov018/cell001/018-all-r00-r1.tif $symlink
+    ln -s ../../../../20210421-ftp/processed/pgp1/fov018/cell001/018-all-r00-r2.tif $symlink
     symlink=$(printf "cell001_t%02d_c06.tif" $i)
     echo $symlink
-    ln -s ../../../../20210421-ftp/processed/pgp1/fov018/cell001/018-all-r00-r2.tif $symlink
+    ln -s ../../../../20210421-ftp/processed/pgp1/fov018/cell001/018-all-r00-r1.tif $symlink
 done
