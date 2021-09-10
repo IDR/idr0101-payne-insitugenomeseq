@@ -122,23 +122,7 @@ cd /uod/idr/filesets/idr0101-payne-insitugenomeseq/
 ```
 
 The script also creates a `20210421-processed/processed-filePaths.tsv` file for bulk
-import of the pattern files.
-Currently, this needs a manually-created `bulk.yml` file placed in the same directory:
-
-```
----
-path: "processed-filePaths.tsv"
-continue: true
-transfer: "ln_s"
-exclude: "clientpath"
-skip:
-  - checksum
-  - minmax
-columns:
-  - target
-  - path
-  - name
-  ```
+import of the pattern files, using the manually-created idr0101-processed-bulk.yml.
 
 Create ROIs from CSV data_tables
 --------------------------------
